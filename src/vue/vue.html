@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:v-bind="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+
+<body>
+<!--这是我们的View-->
+<div id="app">
+    {{ message }}
+</div>
+
+<!--指令-->
+<!--v-if指令是根据条件表达式的值来执行元素的插入或者删除行为。-->
+<div id="v-if">
+    <p>v-if ---------------</p>
+    <p>Hello, Vue.js!</p>
+    <p v-if="yes">Yes!</p>
+    <p v-if="no">No!</p>
+    <p v-if="age >= 25">Age: {{ age }}</p>
+    <p v-if="name.indexOf('jack') >= 0">Name: {{ name }}</p>
+</div>
+<!--v-show也是条件渲染指令，和v-if指令不同的是，使用v-show指令的元素始终会被渲染到HTML，它只是简单地为元素设置CSS的style属性。
+v-show 不支持 <template> 语法，也不支持 v-else。-->
+
+<div is="v-show">
+    <p>v-show ---------------</p>
+    <p v-show="yes">Yes!</p>
+    <p v-show="no">No!</p>
+    <p v-show="age >= 25">Age: {{ age }}</p>
+    <p v-show="name.indexOf('jack') >= 0">Name: {{ name }}</p>
+</div>
+<!--可以用v-else指令为v-if”。v-else元素必须立即跟在v-if或—否则它不能被识别。-->
+<!--一般来说，v-if 有更高的切换开销，而 v-show 有更高的初始渲染开销。因此，如果需要非常频繁地切换，
+则使用 v-show 较好；如果在运行时条件不太可能改变，则使用 v-if 较好。-->
+<div id="v-else">
+    <p>v-else ---------------</p>
+    <p v-if="yes"> Yes!</p>
+    <p v-else>if Name:{{name}}</p>
+
+    <p v-show="yes">Yes!</p>
+
+</div>
+
+<!--参数，一些指令能够接收一个“参数”，在指令名称之后以冒号表示。例如，v-bind 指令可以用于响应式地更新 HTML 属性：-->
+<a v-bind:href="http://www.baidu.com"></a>
+
+</body>
+<script src="vue.js"></script>
+<script>
+    // 这是我们的Model
+    var exampleData = {
+        message: 'Hello Vincent!',
+        seen: true
+    };
+
+    // 创建一个 Vue 实例或 "ViewModel"
+    // 它连接 View 与 Model
+    new Vue({
+        el: '#app',//使用el选项把Vue实例挂载到一个已有内容的元素上，一个vue实例只能绑定一个元素
+        data: exampleData
+    })
+    new Vue({
+        el: '#v-if',
+        data: {
+            yes: true,
+            no: false,
+            age: 28,
+            name: 'keepfool'
+        }
+    })
+    new Vue({
+        el: '#v-else',
+        data: {
+            yes: true,
+            name: 'Vincent',
+            age: 20
+        }
+    })
+</script>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<p>哈&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;哈</p>
+<div id='prop'><!--自定义组件可以多次使用，但id只能指定一次-->
+    <child message1='vincent:' message2='hello prop'></child><!--父组件下发数据到子组件-->
+    <child message1='vincent:' message2='hello prop22'></child><!--父组件下发数据到子组件-->
+    <child message1='vincent:' message2='hello prop23'></child><!--父组件下发数据到子组件-->
+    <child message1='vincent:' message2='hello prop33'></child><!--父组件下发数据到子组件-->
+</div>
+<div id="demo-2"><input v-model="parentMsg"><br><!--v-model?-->
+    <child v-bind:my-message="parentMsg"></child>
+</div>
+
+</body>
+<script src="vue.js"></script>
+<script>
+    //    组件组合
+    //
+    //    组件设计初衷就是要配合使用的，最常见的就是形成父子组件的关系：组件 A 在它的模板中使用了组件 B。
+    // 它们之间必然需要相互通信：父组件可能要给子组件下发数据，子组件则可能要将它内部发生的事情告知父组件。
+    // 然而，通过一个良好定义的接口来尽可能将父子组件解耦也是很重要的。这保证了每个组件的代码可以在相对隔离
+    // 的环境中书写和理解，从而提高了其可维护性和复用性。在 Vue 中，父子组件的关系可以总结为 prop 向下传递，
+    // 事件向上传递。父组件通过 prop 给子组件下发数据，子组件通过事件给父组件发送消息。看看它们是怎么工作的。
+    //    //    使用 Prop 传递数据
+    //
+    //    组件实例的作用域是孤立的。这意味着不能 (也不应该) 在子组件的模板内直接引用父组件的数据。父组件的数据需要通过 prop 才能下发到子组件中。
+    //子组件要显式地用 props 选项声明它预期的数据：
+    //这里使用组件child的地方就是父组件
+    Vue.component('child', {
+        props: ['message1', 'message2'],
+        template: '<p v-text="message1+message2"></p>'//子组件
+    })
+    new Vue({
+        el: "#prop"
+    })
+
+    //与绑定到任何普通的 HTML 特性相类似，我们可以用 v-bind 来动态地将 prop 绑定到父组件的数据。每当父组件的数据变化时，该变化也会传导给子组件：
+    new Vue({
+        el: '#demo-2',
+        data: {
+            parentMsg: 'Message from parent'
+        },
+        components: {
+            child: {
+                props: ['myMessage'],
+                template: '<span>{{myMessage}}</span>'
+            }
+        }
+    })
+//    如果你想把一个对象的所有属性作为 prop 进行传递，可以使用不带任何参数的 v-bind (即用 v-bind 而不是 v-bind:prop-name)。例如，已知一个 todo 对象：
+//todo: {
+//    text: 'Learn Vue',
+//        isComplete: false
+//}
+//    然后：
+//    <todo-item v-bind="todo"></todo-item>
+//    将等价于：
+//    <todo-item
+//    v-bind:text="todo.text"
+//    v-bind:is-complete="todo.isComplete"
+//        ></todo-item>
+
+//    字面量语法 vs 动态语法
+    //
+    //    初学者常犯的一个错误是使用字面量语法传递数值：
+    //    <!-- 传递了一个字符串 "1" -->
+    //    <comp some-prop="1"></comp>
+    //    因为它是一个字面量 prop，它的值是字符串 "1" 而不是一个数值。如果想传递一个真正的 JavaScript 数值，则需要使用 v-bind，从而让它的值被当作 JavaScript 表达式计算：
+    //    <!-- 传递真正的数值 -->
+    //    <comp v-bind:some-prop="1"></comp>
+
+
+//    单向数据流
+//
+//    Prop 是单向绑定的：当父组件的属性变化时，将传导给子组件，但是反过来不会。这是为了防止子组件无意间修改了父组件的状态，来避免应用的数据流变得难以理解。
+//另外，每次父组件更新时，子组件的所有 prop 都会更新为最新值。这意味着你不应该在子组件内部改变 prop。如果你这么做了，Vue 会在控制台给出警告。
+//在两种情况下，我们很容易忍不住想去修改 prop 中数据：
+//Prop 作为初始值传入后，子组件想把它当作局部数据来用；
+//Prop 作为原始数据传入，由子组件处理成其它数据输出。
+//对这两种情况，正确的应对方式是：
+//定义一个局部变量，并用 prop 的值初始化它：
+//props: ['initialCounter'],
+//    data: function () {
+//        return { counter: this.initialCounter }
+//    }
+//    定义一个计算属性，处理 prop 的值并返回：
+//props: ['size'],
+//    computed: {
+//        normalizedSize: function () {
+//            return this.size.trim().toLowerCase()
+//        }
+//    }
+//    注意在 JavaScript 中对象和数组是引用类型，指向同一个内存空间，如果 prop 是一个对象或数组，在子组件内部改变它会影响父组件的状态。
+
+//    Prop 验证
+//
+//    我们可以为组件的 prop 指定验证规则。如果传入的数据不符合要求，Vue 会发出警告。这对于开发给他人使用的组件非常有用。
+//要指定验证规则，需要用对象的形式来定义 prop，而不能用字符串数组：
+//Vue.component('example', {
+//    props: {
+//        // 基础类型检测 (`null` 指允许任何类型)
+//        propA: Number,
+//        // 可能是多种类型
+//        propB: [String, Number],
+//        // 必传且是字符串
+//        propC: {
+//            type: String,
+//            required: true
+//        },
+//        // 数值且有默认值
+//        propD: {
+//            type: Number,
+//            default: 100
+//        },
+//        // 数组/对象的默认值应当由一个工厂函数返回
+//        propE: {
+//            type: Object,
+//            default: function () {
+//                return { message: 'hello' }
+//            }
+//        },
+//        // 自定义验证函数
+//        propF: {
+//            validator: function (value) {
+//                return value > 10
+//            }
+//        }
+//    }
+//})
+//    type 可以是下面原生构造器：
+//String
+//    Number
+//    Boolean
+//    Function
+//    Object
+//    Array
+//    Symbol
+//    type 也可以是一个自定义构造器函数，使用 instanceof 检测。
+//当 prop 验证失败，Vue 会抛出警告 (如果使用的是开发版本)。注意 prop 会在组件实例创建之前进行校验，所以在 default 或 validator 函数里，诸如 data、computed 或 methods 等实例属性还无法使用。
+
+//    非 Prop 特性
+//
+//    所谓非 prop 特性，就是指它可以直接传入组件，而不需要定义相应的 prop。
+//尽管为组件定义明确的 prop 是推荐的传参方式，组件的作者却并不总能预见到组件被使用的场景。所以，组件可以接收任意传入的特性，这些特性都会被添加到组件的根元素上。
+//例如，假设我们使用了第三方组件 bs-date-input，它包含一个 Bootstrap 插件，该插件需要在 input 上添加 data-3d-date-picker 这个特性。这时可以把特性直接添加到组件上 (不需要事先定义 prop)：
+//    <bs-date-input data-3d-date-picker="true"></bs-date-input>
+//    添加属性 data-3d-date-picker="true" 之后，它会被自动添加到 bs-date-input 的根元素上。
+//替换/合并现有的特性
+//
+//    假设这是 bs-date-input 的模板：
+//    <input type="date" class="form-control">
+//        为了给该日期选择器插件增加一个特殊的主题，我们可能需要增加一个特殊的 class，比如：
+//    <bs-date-input
+//    data-3d-date-picker="true"
+//    class="date-picker-theme-dark"
+//        ></bs-date-input>
+//    在这个例子当中，我们定义了两个不同的 class 值：
+//form-control，来自组件自身的模板
+//    date-picker-theme-dark，来自父组件
+//    对于多数特性来说，传递给组件的值会覆盖组件本身设定的值。即例如传递 type="large" 将会覆盖 type="date" 且有可能破坏该组件！所幸我们对待 class 和 style 特性会更聪明一些，这两个特性的值都会做合并 (merge) 操作，让最终生成的值为：form-control date-picker-theme-dark。
+
+//    替换/合并现有的特性
+//
+//    假设这是 bs-date-input 的模板：
+//    <input type="date" class="form-control">
+//        为了给该日期选择器插件增加一个特殊的主题，我们可能需要增加一个特殊的 class，比如：
+//    <bs-date-input
+//    data-3d-date-picker="true"
+//    class="date-picker-theme-dark"
+//        ></bs-date-input>
+//    在这个例子当中，我们定义了两个不同的 class 值：
+//form-control，来自组件自身的模板
+//    date-picker-theme-dark，来自父组件
+//    对于多数特性来说，传递给组件的值会覆盖组件本身设定的值。即例如传递 type="large" 将会覆盖 type="date" 且有可能破坏该组件！所幸我们对待 class 和 style 特性会更聪明一些，这两个特性的值都会做合并 (merge) 操作，让最终生成的值为：form-control date-picker-theme-dark。
+</script>
+</html>

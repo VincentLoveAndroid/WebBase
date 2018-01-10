@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue组件</title>
+</head>
+<body>
+<div id="component">
+    <my-component v-text='name'></my-component>
+</div>
+<div id="example-2">
+    <simple-counter></simple-counter>
+    <simple-counter></simple-counter>
+    <simple-counter></simple-counter>
+</div>
+<br>
+<child id="prop" message="hello prop!"></child>
+</body>
+<script src="vue.js"></script>
+<script>
+    //全局注册组件:
+    // 请注意，对于自定义标签的命名 Vue.js 不强制遵循 W3C 规则 (小写，并且包含一个短杠)，尽管这被认为是最佳实践。
+    Vue.component('my-component', {
+        template: '<button>hello vincent</button>'
+    })
+    new Vue({
+        el: '#component',
+        data: {
+            name: "呵呵"
+        }
+    });
+
+    //局部注册组件：
+    // 你不必把每个组件都注册到全局。你可以通过某个 Vue 实例/组件的实例选项 components 注册仅在其作用域中可用的组件：
+    var Child = {
+        template: '<div>A custom component!</div>'
+    }
+    new Vue({
+        components: {
+            // <my-component> 将只在父组件模板中可用？？？
+            'my-component': Child
+        }
+    })
+    //    data 必须是函数构造 Vue 实例时传入的各种选项大多数都可以在组件里使用。只有一个例外：data 必须是函数。实际上，如果你这么做：
+    Vue.component('simple-counter', {
+        template: '<button v-on:click="counter += 1">{{ counter }}</button>',
+        // 技术上 data 的确是一个函数了，因此 Vue 不会警告，
+        // 但是我们却给每个组件实例返回了同一个对象的引用
+        data: function () {
+            return {
+                counter: 0
+            }
+        }
+    })
+    new Vue({
+        el: '#example-2'
+    })
+    //    使用 Prop 传递数据
+    //
+    //    组件实例的作用域是孤立的。这意味着不能 (也不应该) 在子组件的模板内直接引用父组件的数据。父组件的数据需要通过 prop 才能下发到子组件中。
+    //子组件要显式地用 props 选项声明它预期的数据：
+    Vue.component('child', {
+        // 声明 props
+        props: ['message'],
+        // 就像 data 一样，prop 也可以在模板中使用
+        // 同样也可以在 vm 实例中通过 this.message 来使用
+        template: '<span>{{ message }}</span>'
+    })
+    new Vue({
+        el: '#prop'
+    })
+    //    DOM 模板解析注意事项
+    //
+    //    当使用 DOM 作为模板时 (例如，使用 el 选项来把 Vue 实例挂载到一个已有内容的元素上)，你会受到 HTML 本身的一些限制，
+    // 因为 Vue 只有在浏览器解析、规范化模板之后才能获取其内容。尤其要注意，像 <ul>、<ol>、<table>、<select> 这样的元素里允许包含的元素有限制，
+    // 而另一些像 <option> 这样的元素只能出现在某些特定元素的内部。在自定义组件中使用这些受限制的元素时会导致一些问题，例如：
+    //    <table>
+    //    <my-row>...</my-row>
+    //    </table>
+    //    自定义组件 <my-row> 会被当作无效的内容，因此会导致错误的渲染结果。变通的方案是使用特殊的 is 特性：
+    //    <table>
+    //    <tr is="my-row"></tr>
+    //        </table>
+    //    应当注意，如果使用来自以下来源之一的字符串模板，则没有这些限制：
+    //    <script type="text/x-template">
+    //        JavaScript 内联模板字符串
+    //        .vue 组件
+    //    因此，请尽可能使用字符串模板。
+
+</script>
+</html>
